@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "217411655892",
+    "project_id": "ubercam-6931a",
+    "storage_bucket": "ubercam-6931a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:217411655892:android:d7466f2654e807ad1fc341",
+        "android_client_info": {
+          "package_name": "com.ubercam"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4oX3Yr2YgWUTyTkEY-aEMAfsg1Yha-aU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
