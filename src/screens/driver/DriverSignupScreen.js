@@ -1,59 +1,84 @@
-import React, { useState } from 'react';
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
-  TextInput, 
-  TouchableOpacity, 
-  SafeAreaView, 
+import React, {useState} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  SafeAreaView,
   ScrollView,
-  Alert
+  Alert,
 } from 'react-native';
+import {
+  normalizePlate,
+  validateDriverApplication,
+} from '../../utils/validation';
 
-export default function DriverSignupScreen({ navigation }) {
+export default function DriverSignupScreen({navigation, route}) {
+  const user = route?.params?.user;
   // États pour les informations personnelles
   const [cniNumber, setCniNumber] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
-  
+
   // États pour le véhicule
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehiclePlate, setVehiclePlate] = useState('');
-  
+
   // État pour la localisation/zone d'activité
   const [city, setCity] = useState('');
 
   const handleRegisterDriver = () => {
-    if (!cniNumber || !licenseNumber || !vehicleModel || !vehiclePlate || !city) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires pour l’approbation de votre dossier.');
+    const application = {
+      cniNumber,
+      licenseNumber,
+      vehicleModel,
+      vehiclePlate,
+      city,
+    };
+    const errors = validateDriverApplication(application);
+    if (errors.length > 0) {
+      Alert.alert('Dossier incomplet', errors.join('\n'));
       return;
     }
-
-    Alert.alert(
-      'Dossier Soumis', 
-      'Votre demande d’inscription a été envoyée avec succès. L’administrateur UberCam va vérifier vos pièces sous 24h à 48h.',
-      [{ text: 'Compris', onPress: () => navigation.navigate('Login') }]
-    );
+    // MODE DÉMO : le dossier n'est envoyé nulle part. Avec Firestore, on l'enregistrera ici
+    // (collection "drivers", statut "pending") pour qu'un administrateur le valide.
+    navigation.replace('DriverPending', {
+      user,
+      application: {
+        ...application,
+        cniNumber: cniNumber.replace(/\s/g, ''),
+        licenseNumber: licenseNumber.trim().toUpperCase(),
+        vehicleModel: vehicleModel.trim(),
+        vehiclePlate: normalizePlate(vehiclePlate),
+        city: city.trim(),
+      },
+    });
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        
         <View style={styles.headerContainer}>
-          <Text style={styles.title}>Espace Chauffeur</Text>
-          <Text style={styles.subtitle}>Créez votre dossier professionnel pour commencer à recevoir des courses au Cameroun</Text>
+          <Text style={styles.title}>
+            Espace Chauffeur{user ? ` · ${user.name}` : ''}
+          </Text>
+          <Text style={styles.subtitle}>
+            Créez votre dossier professionnel pour commencer à recevoir des
+            courses au Cameroun
+          </Text>
         </View>
 
         <View style={styles.formContainer}>
           {/* SECTION : IDENTITÉ */}
           <Text style={styles.sectionTitle}>1. Pièces Personnelles</Text>
-          
+
           <Text style={styles.label}>Numéro de CNI</Text>
           <TextInput
             style={styles.input}
             placeholder="Ex: 100XXXXXX"
             placeholderTextColor="#999"
             keyboardType="number-pad"
+            testID="input-cni"
             value={cniNumber}
             onChangeText={setCniNumber}
           />
@@ -63,6 +88,7 @@ export default function DriverSignupScreen({ navigation }) {
             style={styles.input}
             placeholder="Ex: NWXXXXXX"
             placeholderTextColor="#999"
+            testID="input-license"
             value={licenseNumber}
             onChangeText={setLicenseNumber}
           />
@@ -75,6 +101,7 @@ export default function DriverSignupScreen({ navigation }) {
             style={styles.input}
             placeholder="Ex: Peugeot 407 / Mercedes Classe B"
             placeholderTextColor="#999"
+            testID="input-model"
             value={vehicleModel}
             onChangeText={setVehicleModel}
           />
@@ -85,6 +112,7 @@ export default function DriverSignupScreen({ navigation }) {
             placeholder="Ex: LT 123 XX ou CE 456 XX"
             placeholderTextColor="#999"
             autoCapitalize="characters"
+            testID="input-plate"
             value={vehiclePlate}
             onChangeText={setVehiclePlate}
           />
@@ -97,21 +125,28 @@ export default function DriverSignupScreen({ navigation }) {
             style={styles.input}
             placeholder="Ex: Yaoundé, Douala, Bafoussam..."
             placeholderTextColor="#999"
+            testID="input-city"
             value={city}
             onChangeText={setCity}
           />
 
           {/* BOUTON DE SOUMISSION */}
-          <TouchableOpacity style={styles.button} onPress={handleRegisterDriver}>
-            <Text style={styles.buttonText}>Soumettre mon dossier d'approbation</Text>
+          <TouchableOpacity
+            testID="submit-driver"
+            style={styles.button}
+            onPress={handleRegisterDriver}>
+            <Text style={styles.buttonText}>
+              Soumettre mon dossier d'approbation
+            </Text>
           </TouchableOpacity>
 
           {/* RETOUR */}
-          <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Login')}>
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={() => navigation.replace('Login')}>
             <Text style={styles.linkText}>Retour à l'écran de connexion</Text>
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -146,7 +181,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
